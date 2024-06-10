@@ -1,0 +1,66 @@
+.d-flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.justify-content-center {
+  justify-content: center;
+}
+
+.h-100 {
+  height: 50%;
+}
+
+.w-75 {
+  width: 25%;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-form {
+  max-width: 400px; /* Adjust as needed */
+}
+
+body {
+  background-color: #f2e6ff !important /* Light purple background */
+}
+
+.screen-1 {
+  padding: 20px; /* Add padding around the content */
+}
+
+.screen-1 label {
+  margin-bottom: 10px; /* Add space below labels */
+}
+
+.screen-1 input {
+  margin-bottom: 15px; /* Add space below input fields */
+}
+
+.footer {
+  margin-top: 20px; /* Add space above the footer */
+}
+
+.form-control-sm {
+  font-size: 0.875rem; /* Small font size */
+  height: 30px; /* Smaller height */
+  width:20%;
+}
+
+#btnLogin
+{
+
+  background-color:rgb(243, 125, 82);
+}
