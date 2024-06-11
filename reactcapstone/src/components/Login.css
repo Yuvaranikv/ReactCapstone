@@ -76,3 +76,14 @@ body {
   color: red; /* Change to the desired color for the active link */
   font-weight: bold; /* Optionally, you can add other styles */
 }
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px; /* Adjust as needed */
+  transform: translateY(-50%);
+  cursor: pointer;
+}

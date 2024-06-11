@@ -27,7 +27,14 @@ const User = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [searchText, setSearchText] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ username: '', password: '' });
 
+  const handleCloseModal = () => setShowModal(false);
+  const handleShowModal = () => {
+    setShowModal(true);
+    setFormData({ username: '', password: '' });
+  }
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
@@ -81,6 +88,61 @@ const User = () => {
     fetchUsers();
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+   
+
+    fetch('http://localhost:8083/api/users')
+      .then(response => response.json())
+      .then(todos => {
+      
+       
+
+        const todoData = {
+         
+          name: formData.name,
+          username: formData.username,
+          password: formData.password
+                 };
+
+                 fetch('http://localhost:8083/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(todoData)
+        })
+          .then(response => {
+            if (response.ok) {
+              alert('New user added successfully');
+              // Fetch the updated list of tasks after adding a new task
+              fetch('http://localhost:8083/api/users')
+                .then(response => response.json())
+                .then(users => {
+                  setUsers(users); // Update the state with the new list of tasks
+                  handleCloseModal(); // Close the dialog box
+                })
+                .catch(error => {
+                  console.error('Error fetching updated todos:', error);
+                });
+            } else {
+              throw new Error('Failed to add ToDo task');
+            }
+          })
+          .catch(error => {
+            console.error('Error adding ToDo task:', error);
+          });
+      })
+      .catch(error => {
+        console.error('Error fetching ToDo list:', error);
+      });
+  };
+
+  const handleFormChange = (event) => {
+    const { id, value } = event.target;
+    setFormData({ ...formData, [id]: value });
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = todos.slice(indexOfFirstItem, indexOfLastItem);
@@ -94,8 +156,12 @@ const User = () => {
     <>
       <MyNavbar username={userDetails.username} />
       <Container className="mt-4">
+      <div class="input-group mb-3">
+      <button type="button" class="btn btn-outline-danger" onClick={handleShowModal} style={{ height: '40px' }} >+ Add User </button>
+      </div>
         <Row>
           <Col md={3}>
+         
             <div className="d-flex justify-content-between align-items-center mb-1 alert alert-primary">
               <h6 className="mb-0">My team</h6>
               <span className="badge text-bg-danger">{users.length}</span>
@@ -185,7 +251,54 @@ const User = () => {
             )}
 
           </Col>
+
         </Row>
+        <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <font color="Green">Add New User</font>
+          </Modal.Title>
+        </Modal.Header>
+        <hr class="border border-danger border-1 opacity-50"></hr>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="name">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter Name"
+                value={formData.name}
+                onChange={handleFormChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="username">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter username"
+                value={formData.username}
+                onChange={handleFormChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="password">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Enter password"
+                value={formData.password}
+                onChange={handleFormChange}
+                required
+              />
+            </Form.Group>
+            <hr class="border border-danger border-1 opacity-50"></hr>
+            <Button variant="success" type="submit">
+              Add User
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
       </Container>
     </>
   );
