@@ -36,3 +36,8 @@
     transform: rotate(360deg);
   }
 }
+
+.NavLink-active {
+  color: red; /* Change to the desired color for the active link */
+  font-weight: bold; /* Optionally, you can add other styles */
+}

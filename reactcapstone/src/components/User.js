@@ -16,12 +16,18 @@ import { FaThumbsDown } from "react-icons/fa";
 import tasklogo from '../AnimeTodo.gif';
 import { IoBarChartSharp } from "react-icons/io5";
 import { FaUserFriends } from "react-icons/fa";
+import MyNavbar from './MyNavbar.js';
+
 
 const User = () => {
   const { userDetails } = useContext(UserContext); // Access userDetails from context
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [todos, setTodos] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [searchText, setSearchText] = useState('');
+
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
@@ -36,12 +42,16 @@ const User = () => {
     }
   };
 
-  
-  useEffect(() => {
+
+  const fetchUsers = () => {
     fetch('http://localhost:8083/api/users')
       .then(response => response.json())
       .then(data => setUsers(data))
       .catch(error => console.error('Error fetching users:', error));
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   const handleUserClick = async (user) => {
@@ -58,48 +68,56 @@ const User = () => {
     }
   };
 
+  const handleSearch = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const handleResetSearch = () => {
+    setSearchText('');
+    fetchUsers();
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = todos.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(todos.length / itemsPerPage);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <>
-      <Navbar bg="black" expand="lg">
-        <Container>
-          <Navbar.Brand href="#my-task"><FcCustomerSupport />&nbsp;
-            <font color='white'>PS Helpdesk</font></Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">
-            <Nav.Link as={Link} to={`/Todo?userId=${userDetails.id}`}><font color='white'><MdOutlineTaskAlt />&nbsp;My tasks</font></Nav.Link>
-            <Nav.Link as={Link} to={`/User?userId=${userDetails.id}`}><font color='white'><FaUserFriends />&nbsp;My team</font></Nav.Link>
-            <Nav.Link as={Link} to={`/Reports?userId=${userDetails.id}`}><font color='white'><IoBarChartSharp />&nbsp;Dashboard</font></Nav.Link>
-              
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-        <font color='white'>Welcome, {userDetails.username} &nbsp;&nbsp;&nbsp;<RiLogoutBoxRLine onClick={`/Login`} />&nbsp;Logout&nbsp;&nbsp;&nbsp;&nbsp;</font>
-      </Navbar>
+      <MyNavbar username={userDetails.username} />
       <Container className="mt-4">
         <Row>
           <Col md={3}>
             <div className="d-flex justify-content-between align-items-center mb-1 alert alert-primary">
               <h6 className="mb-0">My team</h6>
               <span className="badge text-bg-danger">{users.length}</span>
-   
+
             </div>
             <Form.Group className="mb-0" controlId="Search">
               <div class="input-group mb-3">
-                <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="Search Name"></input>
-                <button type="button" class="btn btn-outline-danger">X</button>
+                <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="Search Name"  value={searchText}
+                  onChange={handleSearch}></input>
+                <button type="button"  onClick={handleResetSearch} class="btn btn-outline-danger">X</button>
               </div>
-             
+
             </Form.Group>
-            {users.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <p><font size='2' color='gray'>Oops !!!! List is empty, Please add the team member.....</font></p>
             ) : (
-              users.map(user => (
+              filteredUsers.map(user => (
                 <Card key={user.id} className="mb-2" onClick={() => handleUserClick(user)}>
                   <Card.Body>
-                      <button type="button" className="btn btn-outline-danger" ><strong><font size="4">{user.name.charAt(0)}</font></strong></button>
-                      &nbsp;&nbsp;&nbsp;
-                      <strong>{user.name}</strong>&nbsp;
+                    <button type="button" className="btn btn-outline-danger" ><strong><font size="4">{user.name.charAt(0)}</font></strong></button>
+                    &nbsp;&nbsp;&nbsp;
+                    <strong>{user.name}</strong>&nbsp;
                   </Card.Body>
                   <hr className="border border-danger border-3 opacity-80"></hr>
                 </Card>
@@ -108,10 +126,10 @@ const User = () => {
           </Col>
 
           <Col md={9}>
-          
-          {!selectedUser ? (
+
+            {!selectedUser ? (
               <img src={tasklogo} className="App-logo" alt="logo" width="100%" />
-              
+
             ) : (
               <>
                 <div className="d-flex justify-content-between align-items-center mb-3 alert alert-warning">
@@ -135,22 +153,37 @@ const User = () => {
                         <td colSpan="6"><font size='2' color='gray'>No todos found for this user.</font></td>
                       </tr>
                     ) : (
-                      todos.map((todo, index) => (
+                      currentItems.map((todo, index) => (
                         <tr key={todo.id}>
-                          <td>{index + 1}</td>
+                          <td>{indexOfFirstItem + index + 1}</td>
                           <td>{todo.category}</td>
                           <td>{todo.description}</td>
                           <td>{todo.deadline}</td>
                           <td className="center-content"> {getPriorityBadge(todo.priority)}</td>
-                          <td className="center-content">{todo.completed ? <FaThumbsUp  style={{ color: 'green' }}/> : <FaThumbsDown style={{ color: 'red' }} />} </td>
+                          <td>{todo.completed ? <FaThumbsUp style={{ color: 'green' }} /> : <FaThumbsDown style={{ color: 'red' }} />}</td>
+
                         </tr>
                       ))
                     )}
                   </tbody>
                 </Table>
+                {/* Pagination */}
+                
+                <nav style={{ display: 'flex', justifyContent: 'center' }}>
+                  <ul className="pagination"  >
+                    {[...Array(totalPages).keys()].map((pageNumber) => (
+                      <li key={pageNumber + 1} className={`page-item ${currentPage === pageNumber + 1 ? 'active' : ''}`}>
+                        <button  className="page-link"  onClick={() => handlePageChange(pageNumber + 1)}>
+                          {pageNumber + 1}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+               
               </>
             )}
-           
+
           </Col>
         </Row>
       </Container>

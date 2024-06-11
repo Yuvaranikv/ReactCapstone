@@ -5,11 +5,16 @@ import { UserContext } from './UserContext.js';
 import '../components/Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+
+
 function Login() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const { setUserDetails } = useContext(UserContext);
   const navigate = useNavigate();
+
+
+
 
   const handleLogin = async () => {
     try {
@@ -24,6 +29,7 @@ function Login() {
         setError('Username not found.');
       } else {
         setError('');
+        localStorage.setItem('localuserid',user.id)
         localStorage.setItem('username', user.username);
         setUserDetails(user);
        
@@ -37,6 +43,8 @@ function Login() {
   };
 
   return (
+    <div>
+    
     <div id="login-page" className="login-container">
       <Container>
         <Row className="justify-content-center">
@@ -88,6 +96,7 @@ function Login() {
           </Toast>
         </ToastContainer>
       </Container>
+    </div>
     </div>
   );
 }

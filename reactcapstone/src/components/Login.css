@@ -34,8 +34,15 @@
 }
 
 body {
-  background-color: #f2e6ff !important /* Light purple background */
+  background-color: #f2e6ff !important /*ligh purple background
+  /* background-image: url('../purple-gradient-background2.jpg'); */
 }
+
+/* .container {
+  background-image: url('../purple-gradient-background.jpg');
+  /* Other background properties */
+ */
+
 
 .screen-1 {
   padding: 20px; /* Add padding around the content */
@@ -63,4 +70,9 @@ body {
 {
 
   background-color:rgb(243, 125, 82);
+}
+
+.NavLink-active {
+  color: red; /* Change to the desired color for the active link */
+  font-weight: bold; /* Optionally, you can add other styles */
 }

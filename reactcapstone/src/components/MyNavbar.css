@@ -1,0 +1,17 @@
+.NavLink-active {
+    color: red; /* Color for the active link */
+    font-weight: bold; /* Optionally, you can add other styles */
+  }
+  
+  .brand-text {
+    color: white; /* Color for the brand text */
+  }
+  
+  .nav-link {
+    color: white; /* Default color for the Nav.Link elements */
+  }
+  
+  .nav-link:hover {
+    color: red; /* Color for the Nav.Link elements on hover */
+  }
+  

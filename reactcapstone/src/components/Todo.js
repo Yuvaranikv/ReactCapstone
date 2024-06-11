@@ -29,8 +29,8 @@ import HighPriorityTasks from './HighPriorityTasks.js';
 import 'animate.css';
 import { FaCalendarAlt } from "react-icons/fa";
 import { RxCrossCircled } from "react-icons/rx";
-
-
+import { FaRegEdit } from "react-icons/fa";
+import MyNavbar from './MyNavbar.js';
 
 
 
@@ -68,8 +68,74 @@ const Todo = () => {
     priority: 'Low',
   });
 
-  const navigate = useNavigate();
+  const [showEditTaskForm, setShowEditTaskForm] = useState(false);
+  const [editTaskData, setEditTaskData] = useState({
+    id: '',
+    description: '',
+    deadline: '',
+    priority: '',
+    category: ''
+  });
+  const handleEditClick = (task) => {
+    setEditTaskData({
+      id: task.id,
+      description: task.description,
+      deadline: task.deadline,
+      priority: task.priority,
+      category: task.category
+    });
+    setShowEditTaskForm(true);
+  };
 
+  const handleEditFormChange = (event) => {
+    const { id, value } = event.target;
+    setEditTaskData((prevData) => ({
+      ...prevData,
+      [id]: value
+    }));
+
+  };
+
+  const handleEditSubmit = (event) => {
+    event.preventDefault();
+    const { id, description, deadline, priority, category } = editTaskData;
+    console.log(editTaskData)
+   
+    fetch(`http://localhost:8083/api/todos/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id,
+        description,
+        deadline,
+        priority,
+        category,
+        completed: false // Set completed to false when editing
+      })
+    })
+      .then(response => {
+        if (response.ok) {
+          alert('Todo task updated successfully');
+          // Fetch the updated list of tasks after updating the task
+          fetch(`http://localhost:8083/api/todos/byuser/${formData.hiddenUserId}`)
+            .then(response => response.json())
+            .then(updatedTodos => {
+              setTodos(updatedTodos); // Update the state with the new list of tasks
+              setShowEditTaskForm(false); // Close the edit form
+            })
+            .catch(error => {
+              console.error('Error fetching updated todos:', error);
+            });
+        } else {
+          throw new Error('Failed to update ToDo task');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating ToDo task:', error);
+      });
+  };
 
 
   useEffect(() => {
@@ -85,6 +151,13 @@ const Todo = () => {
     }
   }, [userDetails]);
 
+
+  useEffect(() => {
+    const storedUserid = localStorage.getItem('localuserid');
+    if (storedUserid) {
+      setUserId(storedUserid);
+    }
+  }, []);
   // Check formData in console
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -93,7 +166,25 @@ const Todo = () => {
     }
   }, []);
 
+  const fetchSearchResults = async (userId, query) => {
+    try {
+      if (!query || query.trim() === '') {
+        setTodos([]);
+        return;
+      }
+      const response = await fetch(`http://localhost:8083/api/todos/byuser/${userId}/search/${query}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setTodos(data);
+    } catch (error) {
+      console.error('Error searching todos:', error);
+    }
+  };
 
+
+  
   const fetchTodos = async () => {
     try {
       if (userDetails) {
@@ -116,62 +207,6 @@ const Todo = () => {
   const handleShowHighPriorityTasks = () => {
     setShowHighPriorityTasks(true);
     setShowFilterDialog(false);
-  };
-
-  useEffect(() => {
-    if (showFilterDialog && filter) {
-      fetchTasks();
-    }
-  }, [showFilterDialog, filter, todos]);
-
-  const fetchSearchResults = async (query) => {
-    try {
-      const response = await fetch(`http://localhost:8083/api/todos/search/${query}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setTodos(data);
-    } catch (error) {
-      console.error('Error searching todos:', error);
-    }
-  };
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch('http://localhost:8083/api/todos');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      console.log("Fetched data:", data); // Debugging
-
-      let filteredTasks;
-      const now = new Date();
-      now.setHours(0, 0, 0, 0); // Set to start of the day
-
-      if (filter === 'High Priority') {
-        filteredTasks = data.filter(task => task.priority === 'High');
-      } else if (filter === 'Due This Week') {
-        const oneWeekFromNow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999); // Set to end of the day one week from now
-        filteredTasks = data.filter(task => {
-          const deadline = new Date(task.deadline);
-          return deadline >= now && deadline <= oneWeekFromNow;
-        });
-      } else if (filter === 'Due Next Week') {
-        const startNextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
-        startNextWeek.setHours(0, 0, 0, 0); // Set to start of the day next week
-        const endNextWeek = new Date(startNextWeek.getFullYear(), startNextWeek.getMonth(), startNextWeek.getDate() + 7, 23, 59, 59, 999); // Set to end of the day next week
-        filteredTasks = data.filter(task => {
-          const deadline = new Date(task.deadline);
-          return deadline >= startNextWeek && deadline <= endNextWeek;
-        });
-      }
-
-      console.log("Filtered tasks:", data); // Debugging
-      setTodos(data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    }
   };
 
   const handleShowFilter = (filterType) => {
@@ -211,44 +246,15 @@ const Todo = () => {
     setShowFilterDialog(false);
   };
 
-
-
-
-
-
-
-  // useEffect(() => {
-  //   const queryParams = new URLSearchParams(location.search);
-  //   const userIdFromURL = queryParams.get('userId');
-  //   setUserId(userIdFromURL);
-
-  //   const fetchTodos = async () => {
-  //     try {
-  //       if (userIdFromURL) {
-  //         const response = await fetch(`http://localhost:8083/api/todos/byuser/${userIdFromURL}`);
-  //         if (!response.ok) {
-  //           throw new Error('Network response was not ok');
-  //         }
-  //         const data = await response.json();
-  //         setTodos(data);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching todos:', error);
-  //     }
-  //   };
-
-  //   fetchTodos();
-  // }, [location.search]);
-
-
   useEffect(() => {
-    if (showNewTaskForm) {
+    if (showNewTaskForm || showEditTaskForm) {
       fetch('http://localhost:8083/api/categories')
         .then(response => response.json())
         .then(data => setCategories(data))
         .catch(error => console.error('Error fetching categories:', error));
     }
-  }, [showNewTaskForm]);
+  }, [showNewTaskForm, showEditTaskForm]);
+  
 
 
 
@@ -281,11 +287,8 @@ const Todo = () => {
         return <Badge bg="secondary" className="uniform-badge">Unknown</Badge>;
     }
   };
-
-  // const handleCardClick = (todoId) => {
-  //   navigate(`/EditTodo?id=${todoId}`);
-  // };
-
+ 
+  
   const handleAddTaskClick = () => {
     setShowNewTaskForm(true);
   };
@@ -395,22 +398,10 @@ const Todo = () => {
       });
   };
 
-  // const handleShowIncompleteTasks = () => {
-  //   setShowIncompleteTasks(true);
-  //   setShowFilterDialog(false);
-  // };
-  // const handleSearch = () => {
-  //   navigate('/search');
-  // };
-
   const handleShowCompleteTasks = () => {
     //setShowCompleteTasks(true);
     setShowFilterDialog(false);
   };
-
-  // const handleSearchClick = () => {
-  //   setShowSearchBox(!showSearchBox);
-  // };
 
   const newRequests = todos.filter(todo => !todo.completed);
   const inProgress = todos.filter(todo => !todo.completed && todo.status === 'inprogress');
@@ -418,73 +409,60 @@ const Todo = () => {
 
   return (
     <>
-      <Navbar bg="black" expand="lg">
-        <Container>
-          <Navbar.Brand href="#my-task"><FcCustomerSupport />&nbsp;
-            <font color='white'>PS Helpdesk</font></Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">
-              <Nav.Link as={Link} to={`/Todo`}><font color='red'><MdOutlineTaskAlt />&nbsp;My tasks</font></Nav.Link>
-              <Nav.Link as={Link} to={`/User`}><font color='white'><FaUserFriends />&nbsp;My team</font></Nav.Link>
-              <Nav.Link as={Link} to={`/Reports`}><font color='white'><IoBarChartSharp />&nbsp;Dashboard</font></Nav.Link>
-              {/* <Nav.Link as={Link} to={`/GrammarChecker`}><font color='white'><IoBarChartSharp />&nbsp;GrammarChecker</font></Nav.Link> */}
-              {/* <Nav.Link as={Link} to={`/MyChatbot`}><font color='white'><IoBarChartSharp />&nbsp;MyChatbot</font></Nav.Link> */}
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-        <font className="animate__animated animate__bounce" color='Orange'>Welcome, {username} &nbsp;&nbsp;&nbsp;
-        </font>
-        <Nav.Link as={Link} to={`/`}><font color='red'><RiLogoutBoxRLine />&nbsp;Logout&nbsp;&nbsp;&nbsp;</font></Nav.Link>
-      </Navbar>
-      { (
-        <SearchItem
-          search={search}
-          setSearch={setSearch}
-          fetchSearchResults={fetchSearchResults}
-        />
+      <MyNavbar username={username} />
+      {(
+         <SearchItem search={search} setSearch={setSearch} />
       )}
       <Container className="mt-4">
         <Row className="align-items-center mb-3">
           <Col md={2}>
-            <button type="button" class="btn btn-outline-danger" onClick={handleAddTaskClick}>+ Add task</button>
-
-
+            <button type="button" class="btn btn-outline-danger" style={{ height: '40px' }} onClick={handleAddTaskClick}>+ Add task</button>
           </Col>
-          <Col md={10} className="d-flex justify-content-end">
+          <Col md={10} className="d-flex justify-content-end align-items-center">
             <Form.Group className="mb-0 me-2" controlId="Filter">
               <font color='Red'><IoFilterOutline /> &nbsp;</font>
-              <Form.Label className="d-inline"> <font color='Red' size='4'>Quick Filter : </font></Form.Label>
+              <Form.Label className="d-inline" style={{ color: 'Red', fontSize: '1rem' }}> Quick Filter : </Form.Label>
 
-              <span onClick={() => handleShowFilter('High Priority')}>
-                <Form.Label className="d-inline"> <font color='Green' size='4'><MdOutlineTaskAlt />&nbsp;High Priority | </font></Form.Label>
+              <span onClick={() => handleShowFilter('High Priority')} >
+                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Green', fontSize: '1rem' }}>
+                  <MdOutlineTaskAlt />&nbsp;High Priority |
+                </Form.Label>
               </span>
-              <span onClick={() => handleShowFilter('Due This Week')}>
-                <Form.Label className="d-inline"> <font color='Green' size='4'><LiaCalendarWeekSolid />&nbsp;Due This Week | </font></Form.Label>
+              <span onClick={() => handleShowFilter('Due This Week')} >
+                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Green', fontSize: '1rem' }}> <LiaCalendarWeekSolid />&nbsp;Due This Week | </Form.Label>
               </span>
-              <span onClick={() => handleShowFilter('Due Next Week')}>
-                <Form.Label className="d-inline"> <font color='Green' size='4'><FaCalendarAlt />&nbsp;Due Next Week | </font></Form.Label>
+              <span onClick={() => handleShowFilter('Due Next Week')} >
+                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Green', fontSize: '1rem' }}> <FaCalendarAlt />&nbsp;Due Next Week | </Form.Label>
               </span>
-              <span onClick={() => handleShowFilter(null)}>
-                <Form.Label className="d-inline"> <font color='Red' size='4'><RxCrossCircled />&nbsp;Clear</font></Form.Label>
-              </span>
-            
             </Form.Group>
-            {/* <Form.Group className="mb-0 me-3" controlId="Sort">
-            <font color='Green'> <BiSortAlt2 /> &nbsp;</font>
-              <Form.Label className="d-inline"><font color='Green'>Sort</font></Form.Label>
-            </Form.Group> */}
-            <Form.Group className="mb-0" controlId="Search">
-              <div class="input-group mb-3">
-                <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="Search" value={search} 
-                onChange={(e) => setSearch(e.target.value)} />
+            <Form.Group className="mb-0 me-2" controlId="Search">
+              <div class="input-group mb-0">
+                <input
+                  type="email"
+                  className="form-control"
+                  id="exampleFormControlInput1"
+                  placeholder="Search"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    fetchSearchResults(userId, e.target.value);
+                  }}
+                  
+                />
                 <span class="input-group-text" id="basic-addon1"><IoSearchOutline style={{ color: 'red' }} /></span>
               </div>
+            </Form.Group>
+
+            <Form.Group className="mb-0">
+              <span onClick={() => handleShowFilter(null)} >
+                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Red', fontSize: '1rem' }}> <RxCrossCircled />&nbsp;Clear</Form.Label>
+              </span>
             </Form.Group>
           </Col>
         </Row>
       </Container>
-      
+
+
       {!showIncompleteTasks && (
         <Container className="mt-4">
           <Row>
@@ -510,7 +488,7 @@ const Todo = () => {
                         {/* <input type="checkbox" onChange={() => handleCheck(todo.id)} checked={todo.completed} /> */}
 
                         <MdOutlineDoneOutline onClick={() => handleCheck(todo.id)} tabIndex="1" aria-label={`Check ${todo.description}`} />
-
+                        <FaRegEdit onClick={() => handleEditClick(todo)} tabIndex="1" />
                       </li>
 
                     </Card.Body>
@@ -694,6 +672,64 @@ const Todo = () => {
         </Modal.Body>
       </Modal>
 
+      <Modal show={showEditTaskForm} onHide={() => setShowEditTaskForm(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Task</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleEditSubmit}>
+            <Form.Group className="mb-2" controlId="description">
+              <Form.Label>Task Description</Form.Label>
+              <Form.Control
+                type="text"
+                value={editTaskData.description}
+                onChange={handleEditFormChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-2" controlId="deadline">
+              <Form.Label>Deadline</Form.Label>
+              <Form.Control
+                type="date"
+                value={editTaskData.deadline}
+                onChange={handleEditFormChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-2" controlId="priority">
+              <Form.Label>Priority</Form.Label>
+              <Form.Select
+                value={editTaskData.priority}
+                onChange={handleEditFormChange}
+                required
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-2" controlId="category">
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={editTaskData.category}
+                onChange={handleEditFormChange}
+                required
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+                console.log(category);
+              </Form.Select>
+            </Form.Group>
+            <Button variant="primary" type="submit">
+              Update Task
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
 
     </>
   );

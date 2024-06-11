@@ -10,11 +10,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Todo.css';
 import { Link } from 'react-router-dom';
 import { UserContext } from './UserContext.js';
+import MyNavbar from './MyNavbar.js';
 
 const Reports = () => {
   const [username, setUsername] = useState('');
   const { userDetails } = useContext(UserContext);
   const [todos, setTodos] = useState([]);
+
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
@@ -92,25 +94,7 @@ const Reports = () => {
 
   return (
     <div>
-      <Navbar bg="black" expand="lg">
-        <Container>
-          <Navbar.Brand href="#my-task"><FcCustomerSupport />&nbsp;
-            <font color='white'>PS Helpdesk</font></Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">
-              <Nav.Link as={Link} to={`/Todo`}><font color='white'><MdOutlineTaskAlt />&nbsp;My tasks</font></Nav.Link>
-              <Nav.Link as={Link} to={`/User`}><font color='white'><FaUserFriends />&nbsp;My team</font></Nav.Link>
-              <Nav.Link as={Link} to={`/Reports`}><font color='white'><IoBarChartSharp />&nbsp;Dashboard</font></Nav.Link>
-              {/* <Nav.Link as={Link} to={`/GrammarChecker`}><font color='white'><IoBarChartSharp />&nbsp;GrammarChecker</font></Nav.Link> */}
-              {/* <Nav.Link as={Link} to={`/MyChatbot`}><font color='white'><IoBarChartSharp />&nbsp;MyChatbot</font></Nav.Link> */}
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-        <font className="animate__animated animate__bounce" color='white'>Welcome, {username} &nbsp;&nbsp;&nbsp;
-        </font>
-        <Nav.Link as={Link} to={`/`}><font color='white'><RiLogoutBoxRLine />&nbsp;Logout&nbsp;&nbsp;&nbsp;</font></Nav.Link>
-      </Navbar>
+       <MyNavbar username={userDetails.username} />
 
       <Container className="mt-4">
         <Row>

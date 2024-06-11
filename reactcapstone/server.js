@@ -256,16 +256,18 @@ app.post("/api/todos", function (request, response) {
 // PUT a todo in order to toggle the "completed" field (false->true initially)
 app.put("/api/todos/:id", function (request, response) {
     const requestedId = request.params.id;
-    console.info(`LOG: Got a PUT request to toggle todo ${requestedId} as complete`);
+    console.info(`LOG: Got a PUT request to update todo ${requestedId}`);
+
+    const { category, description, deadline, priority, completed } = request.body;
 
     const json = fs.readFileSync(__dirname + "/data/todos.json", "utf8");
     const todos = JSON.parse(json);
 
     // Find the requested todo
-    const matchingTodo = todos.find((todo) => String(todo.id) === String(requestedId));
+    const matchingTodoIndex = todos.findIndex((todo) => String(todo.id) === String(requestedId));
 
     // If todo not found, we have nothing left to do: respond
-    if (!matchingTodo) {
+    if (matchingTodoIndex === -1) {
         console.warn("LOG: **ERROR: todo does not exist!");
         response
             .status(404)
@@ -274,21 +276,27 @@ app.put("/api/todos/:id", function (request, response) {
         return;
     }
 
-    // Mark the todo complete if is incomplete, and vice versa
-    // This will correctly mutate the "todos" array, before rewriting file 
-    matchingTodo.completed = !matchingTodo.completed;
+    // Update the todo properties
+    todos[matchingTodoIndex] = {
+        ...todos[matchingTodoIndex],
+        category: category || todos[matchingTodoIndex].category,
+        description: description || todos[matchingTodoIndex].description,
+        deadline: deadline || todos[matchingTodoIndex].deadline,
+        priority: priority || todos[matchingTodoIndex].priority,
+        completed: completed !== undefined ? completed : todos[matchingTodoIndex].completed
+    };
+
+    // Write the updated todos array to the file
     fs.writeFileSync(__dirname + "/data/todos.json", JSON.stringify(todos));
 
     // LOG data for tracing
-    console.info("LOG: This todo is complete ->", matchingTodo);
+    console.info("LOG: Updated todo ->", todos[matchingTodoIndex]);
 
     response
         .status(200)
-        .json({
-            id: matchingTodo.id,
-            completed: matchingTodo.completed
-        });
+        .json(todos[matchingTodoIndex]);
 });
+
 
 
 // DELETE a todo
@@ -385,26 +393,27 @@ app.get('/path/to/sweetalert.min.css', cors(), (req, res) => {
 
 
 
-// Search TODOs by query
-app.get("/api/todos/search/:query", function (request, response) {
+// Search TODOs by query for a specific user
+app.get("/api/todos/byuser/:id/search/:query", function (request, response) {
+    const userId = request.params.id;
     const query = request.params.query;
-    console.info("LOG: Got a GET request to search todos with query " + query);
+    console.info(`LOG: Got a GET request to search todos for user ${userId} with query ${query}`);
 
     const json = fs.readFileSync(__dirname + "/data/todos.json", "utf8");
     const todos = JSON.parse(json);
 
-    // Filter the todos based on the search query (case insensitive)
+    // Filter the todos based on the search query (case insensitive) and user id
     const matchingTodos = todos.filter((todo) =>
-        todo.description.toLowerCase().includes(query.toLowerCase())
+        String(todo.userid) === String(userId) && todo.description.toLowerCase().includes(query.toLowerCase())
     );
 
     // If no matching todos
     if (matchingTodos.length === 0) {
-        console.warn(`LOG: **NOT FOUND**: No todos match the query "${query}"`);
+        console.warn(`LOG: **NOT FOUND**: No todos match the query "${query}" for user ${userId}`);
 
         response
             .status(404)
-            .json({ message: "No todos found matching the query" });
+            .json({ message: "No todos found matching the query for this user" });
 
         return;
     }
@@ -416,6 +425,7 @@ app.get("/api/todos/search/:query", function (request, response) {
         .status(200)
         .json(matchingTodos);
 });
+
 
 const server = app.listen(8083, () => {
     const port = server.address().port;
