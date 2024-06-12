@@ -192,3 +192,12 @@ body.todo-body {
   width: 1em;
   margin-left: -1em;
 }
+
+.wrapper{ 
+  
+  width:600px; 
+  overflow-y:scroll; 
+  position:relative;
+  height: 800px;
+  scrollbar-color: #b077b4 #f1f1f1; 
+}

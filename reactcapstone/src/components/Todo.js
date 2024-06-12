@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Offcanvas, ListGroup,ToastContainer,Toast } from 'react-bootstrap';
+import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Offcanvas, ListGroup, ToastContainer, Toast, Dropdown } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
@@ -32,7 +32,7 @@ import { RxCrossCircled } from "react-icons/rx";
 import { FaRegEdit } from "react-icons/fa";
 import MyNavbar from './MyNavbar.js';
 import { BsInfoSquare } from "react-icons/bs";
-
+import { IoMdClose } from "react-icons/io";
 
 const gf = new GiphyFetch('N95qIVi6lkqYZbev1opFJguGvsvu9LPo');
 
@@ -62,6 +62,9 @@ const Todo = () => {
   const [activeFilter, setActiveFilter] = useState(null);
   const [showToast, setShowToast] = useState('');
   const [showResult, setShowResult] = useState('');
+  const [offCanvasExample, setOffCanvasExample] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   // const [showCompleteTasks, setShowCompleteTasks] = useState(false);
   const [formData, setFormData] = useState({
     userId: '',
@@ -123,7 +126,7 @@ const Todo = () => {
         if (response.ok) {
           setShowResult('Todo task updated successfully');
           setShowToast(true);
-         // alert('Todo task updated successfully');
+          // alert('Todo task updated successfully');
           // Fetch the updated list of tasks after updating the task
           fetch(`http://localhost:8083/api/todos/byuser/${formData.hiddenUserId}`)
             .then(response => response.json())
@@ -207,6 +210,25 @@ const Todo = () => {
     }
   };
 
+  const getCategoryColorClass = (category) => {
+    switch (category) {
+      case 'Personal Task':
+        return 'border-primary'; // Change this to the desired color class
+      case 'Household Task':
+        return 'border-secondary'; // Change this to the desired color class
+      case 'Financial Task':
+        return 'border-success';
+      case 'Help Others':
+        return 'border-info'; // Change this to the desired color class
+      case 'Errand':
+        return 'border-warning'; // Change this to the desired color class
+      case 'Work Task':
+        return 'border-danger';
+      default:
+        return 'border-dark'; // Default color class
+    }
+  };
+
   useEffect(() => {
     fetchTodos();
   }, [userDetails]);
@@ -215,6 +237,7 @@ const Todo = () => {
     setShowHighPriorityTasks(true);
     setShowFilterDialog(false);
   };
+
 
   const handleShowFilter = (filterType) => {
     setActiveFilter(filterType);
@@ -245,20 +268,25 @@ const Todo = () => {
       // Clear filter
       // Simply reset the todos to the original data fetched from the server
       setTodos(originalTodos);
+      setSearch('');
     }
 
     // Hide the filter dialog modal
     setShowFilterDialog(false);
   };
 
+  const fetchCategories = () => {
+    fetch('http://localhost:8083/api/categories')
+      .then(response => response.json())
+      .then(data => setCategories(data))
+      .catch(error => console.error('Error fetching categories:', error));
+  };
+
   useEffect(() => {
-    if (showNewTaskForm || showEditTaskForm) {
-      fetch('http://localhost:8083/api/categories')
-        .then(response => response.json())
-        .then(data => setCategories(data))
-        .catch(error => console.error('Error fetching categories:', error));
+    if (showNewTaskForm || showEditTaskForm || offCanvasExample) {
+      fetchCategories();
     }
-  }, [showNewTaskForm, showEditTaskForm]);
+  }, [showNewTaskForm, showEditTaskForm, offCanvasExample]);
 
 
 
@@ -300,10 +328,12 @@ const Todo = () => {
 
   const handleClose = () => {
     setShowNewTaskForm(false);
+    setOffCanvasExample(false);
   };
 
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+    handleCategorySelect(e.target.value);
   };
 
   const handleSubmit = (e) => {
@@ -414,6 +444,30 @@ const Todo = () => {
     //setShowCompleteTasks(true);
     setShowFilterDialog(false);
   };
+  const handlePrioritySelect = (priority) => {
+    setSelectedPriority(priority);
+    filterTasks(priority, selectedCategory);
+  };
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    filterTasks(selectedPriority, category);
+  };
+
+  const filterTasks = (priority, category) => {
+    let filteredTasks = originalTodos;
+
+    if (priority) {
+      filteredTasks = filteredTasks.filter(task => task.priority === priority);
+    }
+
+    if (category) {
+      filteredTasks = filteredTasks.filter(task => task.category === category);
+    }
+
+    setTodos(filteredTasks);
+    setShowFilterDialog(false);
+  };
 
   const newRequests = todos.filter(todo => !todo.completed);
   const inProgress = todos.filter(todo => !todo.completed && todo.status === 'inprogress');
@@ -459,6 +513,56 @@ const Todo = () => {
     );
   }
 
+
+  function OffCanvasFilter({ name, icon: Icon, ...props }) {
+    const [show, setShow] = useState(false);
+
+    const handleClose = () => {
+      setShow(false);
+
+    }
+    const handleShow = () => {
+      setShow(true);
+      // fetchCategories();
+      console.log('hi from show')
+    }
+
+
+    return (
+      <>
+        <Icon type="button" onClick={handleShow} style={{ fontSize: '1.5rem', color: 'blue', cursor: 'pointer' }} />
+        <Offcanvas show={show} onHide={handleClose} {...props} placement="start">
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title>Filter</Offcanvas.Title>
+          </Offcanvas.Header>
+          <Offcanvas.Body>
+            <Form.Group className="mb-2" controlId="priority">
+              <Form.Label>Priority</Form.Label>
+              <Form.Select onChange={(e) => handlePrioritySelect(e.target.value)}>
+                <option value="">Select priority</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="category">
+              <Form.Label>Category</Form.Label>
+              <Form.Select value={formData.category} onChange={handleFormChange} required>
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Offcanvas.Body>
+        </Offcanvas>
+      </>
+    );
+  }
+
+
   return (
     <>
       <MyNavbar username={username} />
@@ -468,43 +572,51 @@ const Todo = () => {
 
       <Container className="mt-4">
         <Row className="align-items-center mb-1">
-          <Col md={12} className="d-flex justify-content-end" style={{marginLeft:'-4px'}}>
-            <OffCanvasExample icon={BsInfoSquare} className="ms-auto"/>
+          <Col md={12} className="d-flex justify-content-end" style={{ marginLeft: '-4px' }}>
+            <OffCanvasExample icon={BsInfoSquare} className="ms-auto"
+              categories={categories}
+              handlePrioritySelect={handlePrioritySelect}
+              handleCategorySelect={handleCategorySelect} />
+
           </Col>
         </Row>
         <Row className="align-items-center mb-3">
           <Col md={2}>
-            <button type="button" className="btn btn-outline-danger" style={{ height: '40px', marginLeft:'10px' }} onClick={handleAddTaskClick}>+ Add task</button>
+            <button type="button" className="btn btn-outline-danger" style={{ height: '40px', marginLeft: '10px' }} onClick={handleAddTaskClick}>+ Add task</button>
+          </Col>
+          <Col md={1}>
+            <OffCanvasFilter icon={IoFilterOutline} />
+            <Form.Label className="d-inline" style={{ color: 'Red', fontSize: '1rem' }}>Filter  </Form.Label>
           </Col>
           <Col md={7} className="d-flex align-items-center">
-          <Form.Group className="mb-0 me-2" controlId="Filter">
-            <font color='Red'><IoFilterOutline /> &nbsp;</font>
-            <Form.Label className="d-inline" style={{ color: 'Red', fontSize: '1rem' }}> Quick Filter : </Form.Label>
-            <span onClick={() => handleShowFilter('High Priority')}>
-              <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'High Priority' ? 'active' : ''}`} style={{ color: activeFilter === 'High Priority' ? 'red' : 'green', fontSize: '1rem' }}>
-                <MdOutlineTaskAlt />&nbsp;High Priority |
-              </Form.Label>
-            </span>
-            <span onClick={() => handleShowFilter('Due This Week')}>
-              <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'Due This Week' ? 'active' : ''}`} style={{ color: activeFilter === 'Due This Week' ? 'red' : 'green', fontSize: '1rem' }}>
-                <LiaCalendarWeekSolid />&nbsp;Due This Week | 
-              </Form.Label>
-            </span>
-            <span onClick={() => handleShowFilter('Due Next Week')}>
-              <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'Due Next Week' ? 'active' : ''}`} style={{ color: activeFilter === 'Due Next Week' ? 'red' : 'green', fontSize: '1rem' }}>
-                <FaCalendarAlt />&nbsp;Due Next Week | 
-              </Form.Label>
-            </span>
-          </Form.Group>
-          <Form.Group className="mb-0">
-            <span onClick={() => handleShowFilter(null)}>
-              <Form.Label className={`d-inline quick-filter-span ${activeFilter === null ? 'active' : ''}`} style={{ color: activeFilter === null ? 'red' : 'green', fontSize: '1rem' }}>
-                <RxCrossCircled />&nbsp;Clear&nbsp;
-              </Form.Label>
-            </span>
-          </Form.Group>
-        </Col>
-          <Col md={3}>
+            <Form.Group className="mb-0 me-2" controlId="Filter">
+              <font color='Red'>&nbsp;</font>
+              <Form.Label className="d-inline" style={{ color: 'Red', fontSize: '1rem' }}> Quick Filter : </Form.Label>
+              <span onClick={() => handleShowFilter('High Priority')}>
+                <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'High Priority' ? 'active' : ''}`} style={{ color: activeFilter === 'High Priority' ? 'red' : 'green', fontSize: '1rem' }}>
+                  <MdOutlineTaskAlt />&nbsp;High Priority |
+                </Form.Label>
+              </span>
+              <span onClick={() => handleShowFilter('Due This Week')}>
+                <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'Due This Week' ? 'active' : ''}`} style={{ color: activeFilter === 'Due This Week' ? 'red' : 'green', fontSize: '1rem' }}>
+                  <LiaCalendarWeekSolid />&nbsp;Due This Week |
+                </Form.Label>
+              </span>
+              <span onClick={() => handleShowFilter('Due Next Week')}>
+                <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'Due Next Week' ? 'active' : ''}`} style={{ color: activeFilter === 'Due Next Week' ? 'red' : 'green', fontSize: '1rem' }}>
+                  <FaCalendarAlt />&nbsp;Due Next Week |
+                </Form.Label>
+              </span>
+            </Form.Group>
+            <Form.Group className="mb-0">
+              <span onClick={() => handleShowFilter(null)}>
+                <Form.Label className={`d-inline quick-filter-span ${activeFilter === null ? 'active' : ''}`} style={{ color: activeFilter === null ? 'red' : 'green', fontSize: '1rem' }}>
+                  <RxCrossCircled />&nbsp;Clear&nbsp;
+                </Form.Label>
+              </span>
+            </Form.Group>
+          </Col>
+          <Col md={2}>
             <Form.Group className="mb-0 me-1" controlId="Search">
               <div class="input-group mb-0">
                 <input
@@ -518,7 +630,7 @@ const Todo = () => {
                     fetchSearchResults(userId, e.target.value);
                   }}
                 />
-                <span class="input-group-text" id="basic-addon1"><IoSearchOutline style={{ color: 'red' }} /></span>
+                <span class="input-group-text" id="basic-addon1" ><IoMdClose style={{ color: 'red' }} onClick={() => handleShowFilter(null)} /></span>
               </div>
             </Form.Group>
 
@@ -526,7 +638,7 @@ const Todo = () => {
           <ToastContainer className="position-fixed top-0 start-50 translate-middle-x p-3">
             <Toast show={showResult !== ''} onClose={() => setShowResult('')} className="bg-dark text-white">
               <Toast.Header closeButton>
-                <strong className="me-auto" style={{color:'green'}}>Success !!!</strong>
+                <strong className="me-auto" style={{ color: 'green' }}>Success !!!</strong>
               </Toast.Header>
               <Toast.Body>{showResult}</Toast.Body>
             </Toast>
@@ -538,10 +650,12 @@ const Todo = () => {
 
 
       {!showIncompleteTasks && (
-        <Container className="mt-4">
+       
+       
+        <Container className="mt-4 ">
           <Row>
             &nbsp;&nbsp;&nbsp;
-            <Col>
+            <Col className="wrapper">
               <div className="d-flex justify-content-between align-items-center mb-3 alert alert-primary">
                 <h6 className="mb-0">New Requests</h6>
                 <span class="badge text-bg-danger">{newRequests.length}</span>
@@ -551,24 +665,32 @@ const Todo = () => {
               ) : (
                 newRequests.map(todo => (
                   <Card key={todo.id} className="mb-3">
-                    <Card.Body className="d-flex justify-content-between">
-                      <li className="item">
-
-                        <label><strong>{todo.description}</strong></label>
-
-                        {getPriorityBadge(todo.priority)}
-                        <FaTrashAlt role="button" onClick={() => handleDelete(todo.id)} tabIndex="0" aria-label={`Delete ${todo.description}`} />
-                        {/* <input type="checkbox" onChange={() => handleCheck(todo.id)} checked={todo.completed} /> */}
-
-                        <MdOutlineDoneOutline onClick={() => handleCheck(todo.id)} tabIndex="1" aria-label={`Check ${todo.description}`} />
-                        <FaRegEdit onClick={() => handleEditClick(todo)} tabIndex="1" />
-                      </li>
-
-                    </Card.Body>
-                    <p align="center">
-                      <font size='2' color='gray'>Due : {todo.deadline} Category : {todo.category}</font></p>
-                    <hr class="border border-danger border-3 opacity-80"></hr>
-                  </Card>
+                  <Card.Header style={{ background: 'white', border: 'none' }} as="h5">{todo.description}</Card.Header>
+                  <Card.Body className="d-flex justify-content-between">
+                    <li className="item">
+                      <Card.Title>
+                        <p align="center">
+                          <font size='2' color='gray'>Due : {todo.deadline} Category : {todo.category}</font>
+                        </p>
+                      </Card.Title>
+                    </li>
+                  </Card.Body>
+                  <Card.Footer className="d-flex justify-content-between align-items-center" style={{ background: 'white', border: 'none' }}> {/* Footer section with custom styles */}
+                    <div> {/* Align priority badge to the left */}
+                      {getPriorityBadge(todo.priority)}
+                    </div>
+                    <div className="ms-auto d-flex align-items-center"> {/* Margin-left auto to push icons to the right */}
+                      <FaTrashAlt role="button" onClick={() => handleDelete(todo.id)} tabIndex="0" aria-label={`Delete ${todo.description}`} style={{ color: 'plum' }} />
+                      <div style={{ width: '25px' }} /> {/* Spacer */}
+                      <MdOutlineDoneOutline onClick={() => handleCheck(todo.id)} tabIndex="1" aria-label={`Check ${todo.description}`} style={{ color: 'plum' }} />&nbsp;&nbsp;&nbsp;&nbsp;
+                      <FaRegEdit onClick={() => handleEditClick(todo)} style={{ color: 'plum' }} tabIndex="1" /> 
+                    </div>
+                  </Card.Footer>
+                  <hr className={`border ${getCategoryColorClass(todo.category)} border-3 opacity-80`} />
+                </Card>
+                
+                
+                
                 ))
               )}
             </Col>
@@ -632,21 +754,29 @@ const Todo = () => {
               ) : (
                 completed.map(todo => (
                   <Card key={todo.id} className="mb-3">
-                    <Card.Body className="d-flex justify-content-between">
+                    <Card.Header style={{ background: 'white', border: 'none' }} as="h5">{todo.description}</Card.Header>
+                    <Card.Body className="d-flex justify-content-between align-items-center">
                       <li className="item">
-                        <label><strong>{todo.description}</strong></label>
-
-                        {getPriorityBadge(todo.priority)}
-                        <FaTrashAlt role="button" onClick={() => handleDelete(todo.id)} tabIndex="0" aria-label={`Delete ${todo.description}`} />
-                        <CgCloseO onClick={() => handleCheck(todo.id)} tabIndex="1" aria-label={`Check ${todo.description}`} />
-
-
+                        <Card.Title>
+                          <p align="center">
+                            <font size='2' color='gray'>Due : {todo.deadline} Category : {todo.category}</font>
+                          </p>
+                        </Card.Title>
                       </li>
                     </Card.Body>
-                    <p align="center">
-                      <font size='2' color='gray'>Due : {todo.deadline} Category : {todo.category}</font></p>
-                    <hr class="border border-danger border-3 opacity-80"></hr>
+                    <Card.Footer className="d-flex justify-content-between align-items-center" style={{ background: 'white', border: 'none' }}> {/* Footer section with custom styles */}
+                      {getPriorityBadge(todo.priority)}
+                      <div className="d-flex align-items-center"> {/* Icons container */}
+                        <FaTrashAlt role="button" onClick={() => handleDelete(todo.id)} tabIndex="0" aria-label={`Delete ${todo.description}`} style={{ color: 'plum' }} />
+                        <div style={{ width: '25px' }} /> {/* Spacer */}
+                        <CgCloseO onClick={() => handleCheck(todo.id)} tabIndex="1" aria-label={`Check ${todo.description}`} style={{ color: 'plum' }} />
+                      </div>
+                    </Card.Footer>
+                    <hr className={`border ${getCategoryColorClass(todo.category)} border-3 opacity-80`} />
                   </Card>
+
+
+
                 ))
               )}
             </Col>
@@ -654,6 +784,7 @@ const Todo = () => {
           </Row>
 
         </Container>
+       
       )}
 
       {showIncompleteTasks && (
@@ -719,10 +850,10 @@ const Todo = () => {
             </Form.Group>
             <Form.Group className="mb-2" controlId="priority">
               <Form.Label>Priority</Form.Label>
-              <Form.Select value={formData.priority} onChange={handleFormChange}>
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
+              <Form.Select value={formData.priority} onChange={handleFormChange} >
+                <option >Low</option>
+                <option >Medium</option>
+                <option >High</option>
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3" controlId="category">
