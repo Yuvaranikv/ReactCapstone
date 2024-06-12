@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { Navbar, Nav, Container, Row, Col } from 'react-bootstrap';
+import { Navbar, Nav, Container, Row, Col, ListGroup, Offcanvas } from 'react-bootstrap';
 import { FcCustomerSupport } from "react-icons/fc";
 import { MdOutlineTaskAlt } from "react-icons/md";
 import { RiLogoutBoxRLine } from "react-icons/ri";
@@ -11,6 +11,7 @@ import './Todo.css';
 import { Link } from 'react-router-dom';
 import { UserContext } from './UserContext.js';
 import MyNavbar from './MyNavbar.js';
+import { BsInfoSquare } from "react-icons/bs";
 
 const Reports = () => {
   const [username, setUsername] = useState('');
@@ -55,6 +56,41 @@ const Reports = () => {
     ];
   };
 
+  function OffCanvasExample({ name, icon: Icon, ...props }) {
+    const [show, setShow] = useState(false);
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+
+    return (
+      <>
+        <Icon type="button" onClick={handleShow} style={{ fontSize: '1.5rem', color: 'blue', cursor: 'pointer' }} />
+        <Offcanvas show={show} onHide={handleClose} {...props} placement="end">
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title>{name}</Offcanvas.Title>
+          </Offcanvas.Header>
+          <Offcanvas.Body>
+            <h6>Packages used</h6>
+            <ListGroup variant="flush" >
+              <ListGroup.Item as="li" className="custom-list-group-item">React Bootstrap</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Animate.css</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">React Icons</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Rechart</ListGroup.Item>
+            </ListGroup>
+            <hr class="border border-danger border-3 opacity-80"></hr>
+            <h6>Concepts Covered</h6>
+            <ListGroup variant="flush" >
+              <ListGroup.Item as="li" className="custom-list-group-item">React hooks</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">External Api request</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Internal Api request</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">ECMAScript 6</ListGroup.Item>
+            </ListGroup>
+          </Offcanvas.Body>
+        </Offcanvas>
+      </>
+    );
+  }
+
   const COLORS = ['#800080', '#FF8042'];
 
   const getUsersData = () => {
@@ -94,13 +130,13 @@ const Reports = () => {
 
   return (
     <div>
-       <MyNavbar username={userDetails.username} />
+      <MyNavbar username={userDetails.username} />
 
       <Container className="mt-4">
         <Row>
           <Col md={4}>
             <div className="d-flex justify-content-between align-items-center mb-3 alert alert-primary">
-              <h6 className="mb-0">My task status report</h6>
+              <h6 className="mb-0" >My task status report</h6>
             </div>
             <PieChart width={400} height={400}>
               <Pie
@@ -120,39 +156,39 @@ const Reports = () => {
               <Legend />
             </PieChart>
           </Col>
-          <Col md={8}>
-          <div className="d-flex justify-content-between align-items-center mb-3 alert alert-primary">
-              <h6 className="mb-0">My tasks priority report</h6>
+          <Col md={7}>
+            <div className="d-flex justify-content-between align-items-center mb-3 alert alert-primary" style={{ marginLeft: '60px' }}>
+              <h6 className="mb-0" >My tasks priority report</h6>
             </div>
-              {/* Bar chart for priority-wise task report */}
-              <BarChart width={720} height={400} data={getPriorityData()}>
+            <BarChart width={645} height={400} data={getPriorityData()}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="priority" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="completed" fill="#800080" name="Completed Tasks" />
-              <Bar dataKey="incomplete" fill="#FF8042" name="Incomplete Tasks" />
+              <Bar dataKey="completed" fill="#800080" name="Completed Tasks" barSize={40} />
+              <Bar dataKey="incomplete" fill="#FF8042" name="Incomplete Tasks" barSize={40} />
             </BarChart>
-        
-            </Col>
-            </Row>
+          </Col>
+        <Col md={1} style={{ marginTop: '20px' }}>
+        <OffCanvasExample icon={BsInfoSquare} />
+        </Col>
+        </Row>
       </Container>
-
       <Container className="mt-4">
         <Row>
-            <Col md={12}>
+          <Col md={11}>
             <div className="d-flex justify-content-between align-items-center mb-3 alert alert-primary">
               <h6 className="mb-0">My task category report</h6>
             </div>
-            <BarChart width={1000} height={400} data={getUsersData()}>
+            <BarChart width={1020} height={400} data={getUsersData()}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="category" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="completed" fill="#800080" name="Completed Tasks" />
-              <Bar dataKey="incomplete" fill="#FF8042" name="Incomplete Tasks" />
+              <Bar dataKey="completed" fill="#800080" name="Completed Tasks" barSize={40} />
+              <Bar dataKey="incomplete" fill="#FF8042" name="Incomplete Tasks" barSize={40} />
             </BarChart>
           </Col>
         </Row>

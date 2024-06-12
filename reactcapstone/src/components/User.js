@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Table } from 'react-bootstrap';
+import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Table, Offcanvas, ListGroup } from 'react-bootstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
@@ -17,6 +17,7 @@ import tasklogo from '../AnimeTodo.gif';
 import { IoBarChartSharp } from "react-icons/io5";
 import { FaUserFriends } from "react-icons/fa";
 import MyNavbar from './MyNavbar.js';
+import { BsInfoSquare } from "react-icons/bs";
 
 
 const User = () => {
@@ -90,22 +91,22 @@ const User = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-   
+
 
     fetch('http://localhost:8083/api/users')
       .then(response => response.json())
       .then(todos => {
-      
-       
+
+
 
         const todoData = {
-         
+
           name: formData.name,
           username: formData.username,
           password: formData.password
-                 };
+        };
 
-                 fetch('http://localhost:8083/api/users', {
+        fetch('http://localhost:8083/api/users', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -152,16 +153,62 @@ const User = () => {
     setCurrentPage(pageNumber);
   };
 
+  function OffCanvasExample({ name, icon: Icon, ...props }) {
+    const [show, setShow] = useState(false);
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+
+    return (
+      <>
+        <Icon type="button" onClick={handleShow} style={{ fontSize: '1.5rem', color: 'blue', cursor: 'pointer' }} />
+        <Offcanvas show={show} onHide={handleClose} {...props} placement="end">
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title>{name}</Offcanvas.Title>
+          </Offcanvas.Header>
+          <Offcanvas.Body>
+            <h6>Packages used</h6>
+            <ListGroup variant="flush" >
+              <ListGroup.Item as="li" className="custom-list-group-item">React Bootstrap</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Animate.css</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">React Icons</ListGroup.Item>
+            </ListGroup>
+            <hr class="border border-danger border-3 opacity-80"></hr>
+            <h6>Concepts Covered</h6>
+            <ListGroup variant="flush" >
+              <ListGroup.Item as="li" className="custom-list-group-item">React hooks</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">External Api request</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Internal Api request</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">ECMAScript 6</ListGroup.Item>
+            </ListGroup>
+          </Offcanvas.Body>
+        </Offcanvas>
+      </>
+    );
+  }
+
   return (
     <>
       <MyNavbar username={userDetails.username} />
       <Container className="mt-4">
-      <div class="input-group mb-3">
-      <button type="button" class="btn btn-outline-danger" onClick={handleShowModal} style={{ height: '40px' }} >+ Add User </button>
-      </div>
+      <div className="d-flex justify-content-between mb-3">
+    <div className="input-group">
+      <button
+        type="button"
+        className="btn btn-outline-danger"
+        onClick={handleShowModal}
+        style={{ height: '40px' }}
+      >
+        + Add User
+      </button>
+    </div>
+    <div>
+      <OffCanvasExample icon={BsInfoSquare} />
+    </div>
+  </div>
         <Row>
           <Col md={3}>
-         
+
             <div className="d-flex justify-content-between align-items-center mb-1 alert alert-primary">
               <h6 className="mb-0">My team</h6>
               <span className="badge text-bg-danger">{users.length}</span>
@@ -169,9 +216,9 @@ const User = () => {
             </div>
             <Form.Group className="mb-0" controlId="Search">
               <div class="input-group mb-3">
-                <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="Search Name"  value={searchText}
+                <input type="email" className="form-control" id="exampleFormControlInput1" placeholder="Search Name" value={searchText}
                   onChange={handleSearch}></input>
-                <button type="button"  onClick={handleResetSearch} class="btn btn-outline-danger">X</button>
+                <button type="button" onClick={handleResetSearch} class="btn btn-outline-danger">X</button>
               </div>
 
             </Form.Group>
@@ -234,19 +281,19 @@ const User = () => {
                   </tbody>
                 </Table>
                 {/* Pagination */}
-                
+
                 <nav style={{ display: 'flex', justifyContent: 'center' }}>
                   <ul className="pagination"  >
                     {[...Array(totalPages).keys()].map((pageNumber) => (
                       <li key={pageNumber + 1} className={`page-item ${currentPage === pageNumber + 1 ? 'active' : ''}`}>
-                        <button  className="page-link"  onClick={() => handlePageChange(pageNumber + 1)}>
+                        <button className="page-link" onClick={() => handlePageChange(pageNumber + 1)}>
                           {pageNumber + 1}
                         </button>
                       </li>
                     ))}
                   </ul>
                 </nav>
-               
+
               </>
             )}
 
@@ -254,51 +301,51 @@ const User = () => {
 
         </Row>
         <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <font color="Green">Add New User</font>
-          </Modal.Title>
-        </Modal.Header>
-        <hr class="border border-danger border-1 opacity-50"></hr>
-        <Modal.Body>
-          <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3" controlId="name">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Name"
-                value={formData.name}
-                onChange={handleFormChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="username">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter username"
-                value={formData.username}
-                onChange={handleFormChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="password">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Enter password"
-                value={formData.password}
-                onChange={handleFormChange}
-                required
-              />
-            </Form.Group>
-            <hr class="border border-danger border-1 opacity-50"></hr>
-            <Button variant="success" type="submit">
-              Add User
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <font color="Green">Add New User</font>
+            </Modal.Title>
+          </Modal.Header>
+          <hr class="border border-danger border-1 opacity-50"></hr>
+          <Modal.Body>
+            <Form onSubmit={handleSubmit}>
+              <Form.Group className="mb-3" controlId="name">
+                <Form.Label>Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter Name"
+                  value={formData.name}
+                  onChange={handleFormChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="username">
+                <Form.Label>Username</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter username"
+                  value={formData.username}
+                  onChange={handleFormChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="password">
+                <Form.Label>Password</Form.Label>
+                <Form.Control
+                  type="password"
+                  placeholder="Enter password"
+                  value={formData.password}
+                  onChange={handleFormChange}
+                  required
+                />
+              </Form.Group>
+              <hr class="border border-danger border-1 opacity-50"></hr>
+              <Button variant="success" type="submit">
+                Add User
+              </Button>
+            </Form>
+          </Modal.Body>
+        </Modal>
       </Container>
     </>
   );

@@ -16,8 +16,7 @@ function Login() {
   const [loginClicked, setLoginClicked] = useState(false);
   const [password, setPassword] = useState('');
   const [showToast, setShowToast] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-
+  
   const handleLogin = async (event) => {
     event.preventDefault(); // Prevent default form submission behavior
     const form = event.currentTarget;
@@ -60,10 +59,7 @@ function Login() {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-  };
-
+  
 
 
   return (
@@ -76,7 +72,7 @@ function Login() {
               <Carousel interval={2000}>
                 <Carousel.Item>
                   <img
-                    src="/images/checklist1.png"
+                    src="/images/view-3d-woman(1).jpg"
                     alt="First slide"
                     className="d-block w-100"
                     style={{ maxHeight: '350px', width: 'auto' }}
@@ -85,7 +81,7 @@ function Login() {
                 </Carousel.Item>
                 <Carousel.Item>
                   <img
-                    src="/images/checklist.png"
+                    src="/images/new.jpeg"
                     alt="Second slide"
                     className="d-block w-100"
                     style={{ maxHeight: '350px', width: 'auto' }}
@@ -94,23 +90,14 @@ function Login() {
                 </Carousel.Item>
                 <Carousel.Item>
                   <img
-                    src="/images/focusgoal.jpeg"
+                    src="/images/checklist1.png"
                     alt="Third slide"
                     className="d-block w-100"
                     style={{ maxHeight: '350px', width: 'auto' }}
                   />
 
                 </Carousel.Item>
-                <Carousel.Item>
-                  <img
-                    src="/images/todoquote.jpeg"
-                    alt="Fourth slide"
-                    className="d-block w-100"
-                    style={{ maxHeight: '350px', width: 'auto' }}
-                  />
-
-                </Carousel.Item>
-              </Carousel>
+                </Carousel>
 
               {/* <img
               src="/images/view-3d-woman(1).jpg"
@@ -138,21 +125,17 @@ function Login() {
                 <Form.Group controlId="formPassword">
                   <Form.Label>Password</Form.Label>
                   <Form.Control
-                    type={passwordVisible ? 'text' : 'password'}
+                    type="password"
                     placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     isInvalid={loginClicked && !password}
-                   /> <span
-                   className="password-toggle"
-                   onClick={() => setPasswordVisible(!passwordVisible)}
-                 >
-                   {passwordVisible ?<MdOutlineRemoveRedEye />  : <GoEyeClosed />}
-                 </span>
+                   /> 
                               
                   <Form.Control.Feedback type="invalid">Please enter your password.</Form.Control.Feedback>
                 </Form.Group>
+                &nbsp;&nbsp;
                 <Button variant="info" type="submit" className="mb-3 w-100" id="btnLogin" onClick={handleLogin}>
                   Login
                 </Button>

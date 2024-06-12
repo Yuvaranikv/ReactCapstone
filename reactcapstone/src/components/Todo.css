@@ -182,3 +182,13 @@ body.todo-body {
 .quick-filter-span:hover  {
   color: red!important;
 }
+
+
+
+.custom-list-group-item::before {
+  content: "\2022"; /* Unicode for bullet */
+  color: black; /* Bullet color */
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
