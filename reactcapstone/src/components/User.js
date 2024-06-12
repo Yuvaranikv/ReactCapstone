@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Table, Offcanvas, ListGroup } from 'react-bootstrap';
+import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Table, Offcanvas, ListGroup,Toast,ToastContainer } from 'react-bootstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
@@ -30,6 +30,8 @@ const User = () => {
   const [searchText, setSearchText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ username: '', password: '' });
+  const [showToast, setShowToast] = useState('');
+  const [showResult, setShowResult] = useState('');
 
   const handleCloseModal = () => setShowModal(false);
   const handleShowModal = () => {
@@ -115,7 +117,9 @@ const User = () => {
         })
           .then(response => {
             if (response.ok) {
-              alert('New user added successfully');
+              setShowResult('Todo task added successfully');
+              setShowToast(true);
+              //alert('New user added successfully');
               // Fetch the updated list of tasks after adding a new task
               fetch('http://localhost:8083/api/users')
                 .then(response => response.json())
@@ -207,6 +211,14 @@ const User = () => {
     </div>
   </div>
         <Row>
+        <ToastContainer className="position-fixed top-0 start-50 translate-middle-x p-3">
+            <Toast show={showResult !== ''} onClose={() => setShowResult('')} className="bg-dark text-white">
+              <Toast.Header closeButton>
+                <strong className="me-auto" style={{color:'green'}}>Success !!!</strong>
+              </Toast.Header>
+              <Toast.Body>{showResult}</Toast.Body>
+            </Toast>
+          </ToastContainer>
           <Col md={3}>
 
             <div className="d-flex justify-content-between align-items-center mb-1 alert alert-primary">

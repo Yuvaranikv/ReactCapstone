@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Button, Container, Row, Col, Form, Toast, ToastContainer, Carousel } from 'react-bootstrap';
+import { Button, Container, Row, Col, Form, Toast, ToastContainer } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from './UserContext.js';
 import '../components/Login.css';
@@ -69,7 +69,7 @@ function Login() {
         <Container>
           <Row className="justify-content-center">
             <Col sm="4" className="text-center mb-4">
-              <Carousel interval={2000}>
+              {/* <Carousel interval={2000}>
                 <Carousel.Item>
                   <img
                     src="/images/view-3d-woman(1).jpg"
@@ -97,14 +97,14 @@ function Login() {
                   />
 
                 </Carousel.Item>
-                </Carousel>
+                </Carousel> */}
 
-              {/* <img
+              <img
               src="/images/view-3d-woman(1).jpg"
               alt=""
               className="img-fluid"
               style={{ maxHeight: '350px', width: 'auto' }}
-            /> */}
+            />
             </Col>
             <Col sm="4">
               <br></br><br></br>

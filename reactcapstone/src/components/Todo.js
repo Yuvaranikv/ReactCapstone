@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Offcanvas, ListGroup } from 'react-bootstrap';
+import { Navbar, Nav, Container, Card, Badge, Row, Col, Modal, Button, Form, Offcanvas, ListGroup,ToastContainer,Toast } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
@@ -58,10 +58,10 @@ const Todo = () => {
   const [filter, setFilter] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [show, setShow] = useState(false);
-
-
-
-
+  const [originalTodos, setOriginalTodos] = useState([]);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [showToast, setShowToast] = useState('');
+  const [showResult, setShowResult] = useState('');
   // const [showCompleteTasks, setShowCompleteTasks] = useState(false);
   const [formData, setFormData] = useState({
     userId: '',
@@ -121,7 +121,9 @@ const Todo = () => {
     })
       .then(response => {
         if (response.ok) {
-          alert('Todo task updated successfully');
+          setShowResult('Todo task updated successfully');
+          setShowToast(true);
+         // alert('Todo task updated successfully');
           // Fetch the updated list of tasks after updating the task
           fetch(`http://localhost:8083/api/todos/byuser/${formData.hiddenUserId}`)
             .then(response => response.json())
@@ -198,6 +200,7 @@ const Todo = () => {
         }
         const data = await response.json();
         setTodos(data);
+        setOriginalTodos(data);
       }
     } catch (error) {
       console.error('Error fetching todos:', error);
@@ -214,18 +217,17 @@ const Todo = () => {
   };
 
   const handleShowFilter = (filterType) => {
+    setActiveFilter(filterType);
     let filteredTasks;
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    // Implement the logic to filter tasks based on the selected filter type
     if (filterType === 'High Priority') {
-      const highPriorityTasks = todos.filter(task => task.priority === 'High');
-      setTodos(highPriorityTasks); // Update tasks state with high priority tasks
+      filteredTasks = originalTodos.filter(task => task.priority === 'High');
+      setTodos(filteredTasks); // Update tasks state with high priority tasks
     } else if (filterType === 'Due This Week') {
-     
       const oneWeekFromNow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999); // Set to end of the day one week from now
-      filteredTasks = todos.filter(task => {
+      filteredTasks = originalTodos.filter(task => {
         const deadline = new Date(task.deadline);
         return deadline >= now && deadline <= oneWeekFromNow;
       });
@@ -234,7 +236,7 @@ const Todo = () => {
       const startNextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
       startNextWeek.setHours(0, 0, 0, 0); // Set to start of the day next week
       const endNextWeek = new Date(startNextWeek.getFullYear(), startNextWeek.getMonth(), startNextWeek.getDate() + 7, 23, 59, 59, 999); // Set to end of the day next week
-      filteredTasks = todos.filter(task => {
+      filteredTasks = originalTodos.filter(task => {
         const deadline = new Date(task.deadline);
         return deadline >= startNextWeek && deadline <= endNextWeek;
       });
@@ -242,9 +244,7 @@ const Todo = () => {
     } else {
       // Clear filter
       // Simply reset the todos to the original data fetched from the server
-      fetchTodos();
-      console.log('todos' + todos);
-
+      setTodos(originalTodos);
     }
 
     // Hide the filter dialog modal
@@ -335,12 +335,15 @@ const Todo = () => {
         })
           .then(response => {
             if (response.ok) {
-              alert('Todo task added successfully');
+              setShowResult('Todo task added successfully');
+              setShowToast(true);
+              //alert('Todo task added successfully');
               // Fetch the updated list of tasks after adding a new task
               fetch(`http://localhost:8083/api/todos/byuser/${formData.hiddenUserId}`)
                 .then(response => response.json())
                 .then(updatedTodos => {
-                  setTodos(updatedTodos); // Update the state with the new list of tasks
+                  setTodos(updatedTodos);
+                  setOriginalTodos(updatedTodos); // Update the state with the new list of tasks
                   handleClose(); // Close the dialog box
                 })
                 .catch(error => {
@@ -377,6 +380,8 @@ const Todo = () => {
             todo.id === id ? updatedTodo : todo
           );
           setTodos(updatedTodos);
+          setShowResult('Task successfully checked off!');
+          setShowToast(true);
         } else {
           throw new Error('Failed to update ToDo status');
         }
@@ -394,6 +399,8 @@ const Todo = () => {
         if (response.ok) {
           const updatedTodos = todos.filter((todo) => todo.id !== id);
           setTodos(updatedTodos);
+          setShowResult('Todo task deleted successfully');
+          setShowToast(true);
         } else {
           throw new Error('Failed to delete ToDo');
         }
@@ -421,31 +428,31 @@ const Todo = () => {
     return (
       <>
         <Icon type="button" onClick={handleShow} style={{ fontSize: '1.5rem', color: 'blue', cursor: 'pointer' }} />
-        <Offcanvas show={show} onHide={handleClose} {...props}  placement="end">
+        <Offcanvas show={show} onHide={handleClose} {...props} placement="end">
           <Offcanvas.Header closeButton>
             <Offcanvas.Title>{name}</Offcanvas.Title>
           </Offcanvas.Header>
           <Offcanvas.Body>
             <h6>Packages used</h6>
             <ListGroup variant="flush" >
-            <ListGroup.Item as="li" className="custom-list-group-item">React Bootstrap</ListGroup.Item>
-            <ListGroup.Item as="li" className="custom-list-group-item">Animate.css</ListGroup.Item>
-            <ListGroup.Item as="li" className="custom-list-group-item">React Icons</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">React Bootstrap</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Animate.css</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">React Icons</ListGroup.Item>
             </ListGroup>
             <hr class="border border-danger border-3 opacity-80"></hr>
             <h6>Concepts Covered</h6>
             <ListGroup variant="flush" >
-            <ListGroup.Item as="li" className="custom-list-group-item">React hooks</ListGroup.Item>
-            <ListGroup.Item as="li" className="custom-list-group-item">External Api request</ListGroup.Item>
-            <ListGroup.Item as="li" className="custom-list-group-item">Internal Api request</ListGroup.Item>
-            <ListGroup.Item as="li" className="custom-list-group-item">ECMAScript 6</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">React hooks</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">External Api request</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Internal Api request</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">ECMAScript 6</ListGroup.Item>
             </ListGroup>
-             <hr class="border border-danger border-3 opacity-80"></hr>
+            <hr class="border border-danger border-3 opacity-80"></hr>
             <h6>Development Standards</h6>
             <ListGroup variant="flush" >
-            <ListGroup.Item as="li" className="custom-list-group-item">Used Wireframe</ListGroup.Item>
-            <ListGroup.Item as="li" className="custom-list-group-item">Github commit</ListGroup.Item>
-            </ListGroup> 
+              <ListGroup.Item as="li" className="custom-list-group-item">Used Wireframe</ListGroup.Item>
+              <ListGroup.Item as="li" className="custom-list-group-item">Github commit</ListGroup.Item>
+            </ListGroup>
           </Offcanvas.Body>
         </Offcanvas>
       </>
@@ -460,27 +467,45 @@ const Todo = () => {
       )}
 
       <Container className="mt-4">
+        <Row className="align-items-center mb-1">
+          <Col md={12} className="d-flex justify-content-end" style={{marginLeft:'-4px'}}>
+            <OffCanvasExample icon={BsInfoSquare} className="ms-auto"/>
+          </Col>
+        </Row>
         <Row className="align-items-center mb-3">
           <Col md={2}>
-            <button type="button" className="btn btn-outline-danger" style={{ height: '40px' }} onClick={handleAddTaskClick}>+ Add task</button>
+            <button type="button" className="btn btn-outline-danger" style={{ height: '40px', marginLeft:'10px' }} onClick={handleAddTaskClick}>+ Add task</button>
           </Col>
-          <Col md={10} className="d-flex justify-content-end align-items-center">
-            <Form.Group className="mb-0 me-2" controlId="Filter">
-              <font color='Red'><IoFilterOutline /> &nbsp;</font>
-              <Form.Label className="d-inline" style={{ color: 'Red', fontSize: '1rem' }}> Quick Filter : </Form.Label>
-              <span onClick={() => handleShowFilter('High Priority')} >
-                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Green', fontSize: '1rem' }}>
-                  <MdOutlineTaskAlt />&nbsp;High Priority |
-                </Form.Label>
-              </span>
-              <span onClick={() => handleShowFilter('Due This Week')} >
-                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Green', fontSize: '1rem' }}> <LiaCalendarWeekSolid />&nbsp;Due This Week | </Form.Label>
-              </span>
-              <span onClick={() => handleShowFilter('Due Next Week')} >
-                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Green', fontSize: '1rem' }}> <FaCalendarAlt />&nbsp;Due Next Week | </Form.Label>
-              </span>
-            </Form.Group>
-            <Form.Group className="mb-0 me-2" controlId="Search">
+          <Col md={7} className="d-flex align-items-center">
+          <Form.Group className="mb-0 me-2" controlId="Filter">
+            <font color='Red'><IoFilterOutline /> &nbsp;</font>
+            <Form.Label className="d-inline" style={{ color: 'Red', fontSize: '1rem' }}> Quick Filter : </Form.Label>
+            <span onClick={() => handleShowFilter('High Priority')}>
+              <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'High Priority' ? 'active' : ''}`} style={{ color: activeFilter === 'High Priority' ? 'red' : 'green', fontSize: '1rem' }}>
+                <MdOutlineTaskAlt />&nbsp;High Priority |
+              </Form.Label>
+            </span>
+            <span onClick={() => handleShowFilter('Due This Week')}>
+              <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'Due This Week' ? 'active' : ''}`} style={{ color: activeFilter === 'Due This Week' ? 'red' : 'green', fontSize: '1rem' }}>
+                <LiaCalendarWeekSolid />&nbsp;Due This Week | 
+              </Form.Label>
+            </span>
+            <span onClick={() => handleShowFilter('Due Next Week')}>
+              <Form.Label className={`d-inline quick-filter-span ${activeFilter === 'Due Next Week' ? 'active' : ''}`} style={{ color: activeFilter === 'Due Next Week' ? 'red' : 'green', fontSize: '1rem' }}>
+                <FaCalendarAlt />&nbsp;Due Next Week | 
+              </Form.Label>
+            </span>
+          </Form.Group>
+          <Form.Group className="mb-0">
+            <span onClick={() => handleShowFilter(null)}>
+              <Form.Label className={`d-inline quick-filter-span ${activeFilter === null ? 'active' : ''}`} style={{ color: activeFilter === null ? 'red' : 'green', fontSize: '1rem' }}>
+                <RxCrossCircled />&nbsp;Clear&nbsp;
+              </Form.Label>
+            </span>
+          </Form.Group>
+        </Col>
+          <Col md={3}>
+            <Form.Group className="mb-0 me-1" controlId="Search">
               <div class="input-group mb-0">
                 <input
                   type="email"
@@ -496,17 +521,18 @@ const Todo = () => {
                 <span class="input-group-text" id="basic-addon1"><IoSearchOutline style={{ color: 'red' }} /></span>
               </div>
             </Form.Group>
-            <Form.Group className="mb-0">
-              <span onClick={() => handleShowFilter(null)} >
-                <Form.Label className="d-inline quick-filter-span" style={{ color: 'Red', fontSize: '1rem' }}> <RxCrossCircled />&nbsp;Clear&nbsp;</Form.Label>
-              </span>
 
-              <OffCanvasExample icon={BsInfoSquare} />
-
-            </Form.Group>
           </Col>
-
+          <ToastContainer className="position-fixed top-0 start-50 translate-middle-x p-3">
+            <Toast show={showResult !== ''} onClose={() => setShowResult('')} className="bg-dark text-white">
+              <Toast.Header closeButton>
+                <strong className="me-auto" style={{color:'green'}}>Success !!!</strong>
+              </Toast.Header>
+              <Toast.Body>{showResult}</Toast.Body>
+            </Toast>
+          </ToastContainer>
         </Row>
+
       </Container>
 
 

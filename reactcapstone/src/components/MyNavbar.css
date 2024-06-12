@@ -15,3 +15,9 @@
     color: red; /* Color for the Nav.Link elements on hover */
   }
   
+  .nav-link.active {
+    color: red !important; /* Color for the active Nav.Link element */
+  }
+  
+  
+ 
