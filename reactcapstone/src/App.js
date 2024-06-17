@@ -8,6 +8,7 @@ import SearchItem from './components/SearchItem.js';
 import Reports from './components/Reports.js';
 import MyNavbar from './components/MyNavbar.js';
 import './components/MyNavbar.css';
+import ImageViewer from './components/ImageViewer.js';
 
 function App() {
   const [search, setSearch] = useState('');
@@ -37,6 +38,7 @@ function App() {
             path="/SearchItem"
             element={<SearchItem search={search} setSearch={setSearch} />}
           />
+           <Route path="/ImageViewer" element={ImageViewer} />
         </Routes>
       </Router>
     </UserProvider>

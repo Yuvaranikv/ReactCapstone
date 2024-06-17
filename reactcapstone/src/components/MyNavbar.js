@@ -49,9 +49,9 @@ const MyNavbar = ({ username }) => {
           </Nav>
         </Navbar.Collapse>
       </Container>
-      <font className="animate__animated animate__bounce" color='Orange'>Welcome, {username} &nbsp;&nbsp;&nbsp;</font>
+      <font className="animate__animated animate__bounce" color='Orange'>Welcome, {username} &nbsp;&nbsp;</font>
       <Nav.Link as={Link} to="/">
-        <font color='red'><RiLogoutBoxRLine />&nbsp;Logout&nbsp;&nbsp;&nbsp;</font>
+        <font color='red'><RiLogoutBoxRLine />&nbsp;Logout&nbsp;&nbsp;</font>
       </Nav.Link>
     </Navbar>
   );

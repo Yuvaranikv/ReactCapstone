@@ -26,7 +26,7 @@ const User = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [todos, setTodos] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(5);
   const [searchText, setSearchText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -117,7 +117,7 @@ const User = () => {
         })
           .then(response => {
             if (response.ok) {
-              setShowResult('Todo task added successfully');
+              setShowResult('User added successfully');
               setShowToast(true);
               //alert('New user added successfully');
               // Fetch the updated list of tasks after adding a new task
@@ -165,7 +165,7 @@ const User = () => {
 
     return (
       <>
-        <Icon type="button" onClick={handleShow} style={{ fontSize: '1.5rem', color: 'blue', cursor: 'pointer' }} />
+        <Icon type="button" onClick={handleShow} style={{ fontSize: '2.2rem', color: 'red', cursor: 'pointer' }} />
         <Offcanvas show={show} onHide={handleClose} {...props} placement="end">
           <Offcanvas.Header closeButton>
             <Offcanvas.Title>{name}</Offcanvas.Title>

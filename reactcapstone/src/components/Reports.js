@@ -64,7 +64,7 @@ const Reports = () => {
 
     return (
       <>
-        <Icon type="button" onClick={handleShow} style={{ fontSize: '1.5rem', color: 'blue', cursor: 'pointer' }} />
+        <Icon type="button" onClick={handleShow} style={{ fontSize: '2.2rem', color: 'red', cursor: 'pointer' }} />
         <Offcanvas show={show} onHide={handleClose} {...props} placement="end">
           <Offcanvas.Header closeButton>
             <Offcanvas.Title>{name}</Offcanvas.Title>
